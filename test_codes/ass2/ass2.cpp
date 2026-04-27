@@ -1,0 +1,161 @@
+#include <iostream>
+#include <vector>
+#include <queue>
+#include <cmath>
+using namespace std;
+
+// Node structure for A* Search
+struct Node {
+    int x, y;       // position
+    int g, h, f;    // cost values
+
+    Node(int x, int y, int g, int h) {
+        this->x = x;
+        this->y = y;
+        this->g = g;
+        this->h = h;
+        this->f = g + h;
+    }
+};
+
+// Comparator for priority queue (min-heap)
+struct Compare {
+    bool operator()(Node a, Node b) {
+        return a.f > b.f;
+    }
+};
+
+// Valid move check
+bool isValid(int x, int y, int n, int m, vector<vector<int>>& grid) {
+    return (x >= 0 && y >= 0 && x < n && y < m && grid[x][y] == 0);
+}
+
+// Heuristic: Manhattan Distance
+int heuristic(int x, int y, int goalX, int goalY) {
+    return abs(x - goalX) + abs(y - goalY);
+}
+
+// A* Algorithm
+void aStar(vector<vector<int>>& grid, int startX, int startY, int goalX, int goalY) {
+    int n = grid.size();
+    int m = grid[0].size();
+
+    priority_queue<Node, vector<Node>, Compare> pq;
+    vector<vector<bool>> visited(n, vector<bool>(m, false));
+
+    pq.push(Node(startX, startY, 0, heuristic(startX, startY, goalX, goalY)));
+
+    int dx[] = {-1, 1, 0, 0};
+    int dy[] = {0, 0, -1, 1};
+
+    while (!pq.empty()) {
+        Node current = pq.top();
+        pq.pop();
+
+        int x = current.x;
+        int y = current.y;
+
+        if (visited[x][y]) continue;
+        visited[x][y] = true;
+
+        cout << "(" << x << "," << y << ") ";
+
+        // Goal reached
+        if (x == goalX && y == goalY) {
+            cout << "\nGoal Reached!" << endl;
+            return;
+        }
+
+        // Explore neighbors
+        for (int i = 0; i < 4; i++) {
+            int newX = x + dx[i];
+            int newY = y + dy[i];
+
+            if (isValid(newX, newY, n, m, grid) && !visited[newX][newY]) {
+                int newG = current.g + 1;
+                int newH = heuristic(newX, newY, goalX, goalY);
+                pq.push(Node(newX, newY, newG, newH));
+            }
+        }
+    }
+
+    cout << "\nNo Path Found!" << endl;
+}
+
+int main() {
+    int n, m;
+    cout << "Enter rows and columns of grid: ";
+    cin >> n >> m;
+
+    vector<vector<int>> grid(n, vector<int>(m));
+
+    cout << "Enter grid values (0 = free path, 1 = obstacle):\n";
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < m; j++) {
+            cin >> grid[i][j];
+        }
+    }
+
+    int sx, sy, gx, gy;
+    cout << "Enter start position (x y): ";
+    cin >> sx >> sy;
+
+    cout << "Enter goal position (x y): ";
+    cin >> gx >> gy;
+
+    cout << "\nA* Search Path:\n";
+    aStar(grid, sx, sy, gx, gy);
+
+    return 0;
+}
+
+/*
+====================================================
+Game Explanation:
+====================================================
+
+This program uses A* Algorithm for a Maze / Grid Game.
+
+Game Rules:
+1. Player starts from Start Position.
+2. Goal is to reach Destination Cell.
+3. Some cells are blocked (obstacles).
+4. Player can move:
+   - Up
+   - Down
+   - Left
+   - Right
+5. A* finds the shortest and smartest path.
+
+How A* Works:
+f(n) = g(n) + h(n)
+
+g(n) = Cost from start to current node
+h(n) = Estimated cost to goal (Manhattan Distance)
+f(n) = Total score
+
+Node with lowest f(n) is explored first.
+
+====================================================
+Dummy Input Test Case:
+====================================================
+
+Enter rows and columns of grid: 5 5
+
+Enter grid:
+0 0 0 1 0
+1 1 0 1 0
+0 0 0 0 0
+0 1 1 1 0
+0 0 0 0 0
+
+Enter start position: 0 0
+Enter goal position: 4 4
+
+Expected Output:
+A* Search Path:
+(0,0) (0,1) (0,2) (1,2) (2,2) (2,3) (2,4) (3,4) (4,4)
+Goal Reached!
+
+====================================================
+*/
